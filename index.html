@@ -25,7 +25,6 @@
     .animate-in.zoom-in { animation: zoomIn 0.3s ease-out forwards; }
     .animate-in.slide-in-from-bottom-8 { animation: slideUp 0.5s ease-out forwards; }
     
-    /* Prevenir scroll quando o modal estiver aberto */
     .modal-open { overflow: hidden; }
   </style>
 </head>
@@ -34,194 +33,215 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     // --- ÍCONES ---
     const Palette = ({ size = 24, className = "", strokeWidth = 2 }) => (
       <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.836-.437-1.124-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
     );
-    const ArrowRight = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-    );
-    const Info = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-    );
-    const Sparkles = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 19v4"/><path d="M17 21h4"/></svg>
-    );
-    const RefreshCcw = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
-    );
-    const UserIcon = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    );
-    const Lock = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    );
-    const LogOut = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    );
-    const Shield = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    );
-    const Trash2 = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-    );
-    const X = ({ size = 24, className = "" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    );
+    const ArrowRight = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
+    const Info = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>);
+    const Sparkles = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 19v4"/><path d="M17 21h4"/></svg>);
+    const RefreshCcw = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>);
+    const UserIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>);
+    const Lock = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>);
+    const LogOut = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>);
+    const Shield = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>);
+    const Trash2 = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>);
+    const X = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>);
+    const Clock = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>);
+    const Loader = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`animate-spin ${className}`}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>);
 
     // --- DADOS DO QUIZ ---
     const questions = [
-      {
-        id: 'veins', question: 'Observe as veias do seu pulso na luz natural. Qual a cor predominante?',
-        options: [
-          { label: 'Azuladas ou arroxeadas', value: { temp: -2, intensity: 0 } },
-          { label: 'Esverdeadas ou oliva', value: { temp: 2, intensity: 0 } },
-          { label: 'Uma mistura de azul e verde (difícil distinguir)', value: { temp: 0, intensity: 0 } },
-        ]
-      },
-      {
-        id: 'sun', question: 'Como a sua pele reage quando exposta ao sol?',
-        options: [
-          { label: 'Queimo facilmente, fico vermelha e raramente bronzeio', value: { temp: -2, intensity: 0 } },
-          { label: 'Bronzeio com facilidade, ficando com um tom dourado', value: { temp: 2, intensity: 0 } },
-          { label: 'Queimo um pouco no início, mas depois ganho um bronzeado', value: { temp: 0, intensity: 0 } },
-        ]
-      },
-      {
-        id: 'jewelry', question: 'Quais os acessórios que harmonizam melhor com a sua pele e a deixam mais iluminada?',
-        options: [
-          { label: 'Prata, ouro branco ou platina', value: { temp: -2, intensity: 0 } },
-          { label: 'Ouro amarelo ou bronze', value: { temp: 2, intensity: 0 } },
-          { label: 'Ambos ficam ótimos em mim', value: { temp: 0, intensity: 0 } },
-        ]
-      },
-      {
-        id: 'hair', question: 'Qual é a cor natural do seu cabelo?',
-        options: [
-          { label: 'Preto ou Castanho Escuro', value: { temp: 0, intensity: 2 } },
-          { label: 'Castanho Médio, Acaju ou Ruivo', value: { temp: 1, intensity: 0 } },
-          { label: 'Loiro, Castanho Claro ou Grisalho claro', value: { temp: 0, intensity: -2 } },
-        ]
-      },
-      {
-        id: 'eyes', question: 'Qual é a cor dos seus olhos?',
-        options: [
-          { label: 'Castanho Escuro ou Preto', value: { temp: 0, intensity: 2 } },
-          { label: 'Mel, Avelã ou Verde quente', value: { temp: 1, intensity: 0 } },
-          { label: 'Azul, Cinzento ou Verde claro (frio)', value: { temp: -1, intensity: -2 } },
-        ]
-      },
-      {
-        id: 'contrast', question: 'Como é o contraste entre a sua pele, olhos e cabelo?',
-        options: [
-          { label: 'Alto contraste (ex: pele clara com cabelo bem escuro)', value: { temp: 0, intensity: 2 } },
-          { label: 'Contraste médio (diferença moderada entre pele e cabelo)', value: { temp: 0, intensity: 0 } },
-          { label: 'Baixo contraste (tudo no mesmo tom, ex: pele clara e cabelo loiro)', value: { temp: 0, intensity: -2 } },
-        ]
-      }
+      { id: 'veins', question: 'Observe as veias do seu pulso na luz natural. Qual a cor predominante?', options: [{ label: 'Azuladas ou arroxeadas', value: { temp: -2, intensity: 0 } }, { label: 'Esverdeadas ou oliva', value: { temp: 2, intensity: 0 } }, { label: 'Uma mistura de azul e verde (difícil distinguir)', value: { temp: 0, intensity: 0 } }]},
+      { id: 'sun', question: 'Como a sua pele reage quando exposta ao sol?', options: [{ label: 'Queimo facilmente, fico vermelha e raramente bronzeio', value: { temp: -2, intensity: 0 } }, { label: 'Bronzeio com facilidade, ficando com um tom dourado', value: { temp: 2, intensity: 0 } }, { label: 'Queimo um pouco no início, mas depois ganho um bronzeado', value: { temp: 0, intensity: 0 } }]},
+      { id: 'jewelry', question: 'Quais os acessórios que harmonizam melhor com a sua pele e a deixam mais iluminada?', options: [{ label: 'Prata, ouro branco ou platina', value: { temp: -2, intensity: 0 } }, { label: 'Ouro amarelo ou bronze', value: { temp: 2, intensity: 0 } }, { label: 'Ambos ficam ótimos em mim', value: { temp: 0, intensity: 0 } }]},
+      { id: 'hair', question: 'Qual é a cor natural do seu cabelo?', options: [{ label: 'Preto ou Castanho Escuro', value: { temp: 0, intensity: 2 } }, { label: 'Castanho Médio, Acaju ou Ruivo', value: { temp: 1, intensity: 0 } }, { label: 'Loiro, Castanho Claro ou Grisalho claro', value: { temp: 0, intensity: -2 } }]},
+      { id: 'eyes', question: 'Qual é a cor dos seus olhos?', options: [{ label: 'Castanho Escuro ou Preto', value: { temp: 0, intensity: 2 } }, { label: 'Mel, Avelã ou Verde quente', value: { temp: 1, intensity: 0 } }, { label: 'Azul, Cinzento ou Verde claro (frio)', value: { temp: -1, intensity: -2 } }]},
+      { id: 'contrast', question: 'Como é o contraste entre a sua pele, olhos e cabelo?', options: [{ label: 'Alto contraste (ex: pele clara com cabelo bem escuro)', value: { temp: 0, intensity: 2 } }, { label: 'Contraste médio (diferença moderada entre pele e cabelo)', value: { temp: 0, intensity: 0 } }, { label: 'Baixo contraste (tudo no mesmo tom, ex: pele clara e cabelo loiro)', value: { temp: 0, intensity: -2 } }]}
     ];
 
-    // --- DADOS DAS PALETAS (RESULTADOS) ---
     const palettes = {
-      inverno: {
-        name: 'Inverno', subtitle: 'Cores Frias, Escuras e Brilhantes',
-        description: 'A sua beleza é marcante e de alto contraste. Fica deslumbrante em cores puras, intensas e frias. O preto e o branco puro foram feitos para si.',
-        characteristics: ['Frio', 'Intenso', 'Profundo'],
-        colors: [
-          { hex: '#000000', name: 'Preto Puro' }, { hex: '#FFFFFF', name: 'Branco Puro' },
-          { hex: '#E32636', name: 'Vermelho Sangue' }, { hex: '#000080', name: 'Azul Marinho' },
-          { hex: '#50C878', name: 'Verde Esmeralda' }, { hex: '#FF00FF', name: 'Magenta' },
-          { hex: '#120A8F', name: 'Azul Royal' }, { hex: '#4B0082', name: 'Índigo' }
-        ],
-        avoid: ['Laranja', 'Dourado', 'Tons terrosos apagados', 'Pastéis muito quentes'],
-        bgColor: 'bg-slate-900', textColor: 'text-slate-100'
-      },
-      verao: {
-        name: 'Verão', subtitle: 'Cores Frias, Claras e Suaves',
-        description: 'A sua beleza é delicada, elegante e harmoniosa. Tons suaves, acinzentados e pastéis frios realçam a sua beleza natural sem a ofuscar.',
-        characteristics: ['Frio', 'Suave', 'Claro'],
-        colors: [
-          { hex: '#AEC6CF', name: 'Azul Pastel' }, { hex: '#E6E6FA', name: 'Lavanda' },
-          { hex: '#D8BFD8', name: 'Rosa Velho' }, { hex: '#B0C4DE', name: 'Azul Aço Claro' },
-          { hex: '#98FF98', name: 'Verde Menta' }, { hex: '#EEDC82', name: 'Amarelo Pálido' },
-          { hex: '#FFB6C1', name: 'Rosa Claro' }, { hex: '#778899', name: 'Cinzento Ardósia' }
-        ],
-        avoid: ['Preto puro', 'Laranja vibrante', 'Amarelo mostarda', 'Cores néon'],
-        bgColor: 'bg-blue-50', textColor: 'text-blue-900'
-      },
-      outono: {
-        name: 'Outono', subtitle: 'Cores Quentes, Escuras e Suaves',
-        description: 'A sua beleza é rica, terrosa e acolhedora. Tons profundos, quentes e misturados com amarelo ou castanho harmonizam perfeitamente com a sua pele.',
-        characteristics: ['Quente', 'Suave', 'Profundo'],
-        colors: [
-          { hex: '#FFDB58', name: 'Mostarda' }, { hex: '#8A9A5B', name: 'Verde Musgo' },
-          { hex: '#E2725B', name: 'Terracota' }, { hex: '#7B3F00', name: 'Castanho Chocolate' },
-          { hex: '#CC5500', name: 'Laranja Queimado' }, { hex: '#722F37', name: 'Vinho / Marsala' },
-          { hex: '#DAA520', name: 'Dourado' }, { hex: '#556B2F', name: 'Verde Oliva' }
-        ],
-        avoid: ['Branco puro', 'Rosa choque', 'Azul gelo', 'Cores frias muito brilhantes'],
-        bgColor: 'bg-orange-50', textColor: 'text-orange-950'
-      },
-      primavera: {
-        name: 'Primavera', subtitle: 'Cores Quentes, Claras e Brilhantes',
-        description: 'A sua beleza é radiante, fresca e iluminada. Fica incrível com cores quentes, vibrantes e alegres, parecendo cheia de energia.',
-        characteristics: ['Quente', 'Brilhante', 'Claro'],
-        colors: [
-          { hex: '#FFE5B4', name: 'Pêssego' }, { hex: '#FF7F50', name: 'Coral' },
-          { hex: '#FFC000', name: 'Amarelo Girassol' }, { hex: '#8DB600', name: 'Verde Maçã' },
-          { hex: '#40E0D0', name: 'Turquesa' }, { hex: '#FFFDD0', name: 'Creme' },
-          { hex: '#FF69B4', name: 'Rosa Pastilha' }, { hex: '#87CEEB', name: 'Azul Céu' }
-        ],
-        avoid: ['Preto', 'Cores muito escuras e pesadas', 'Cinzento chumbo', 'Tons frios e apagados'],
-        bgColor: 'bg-yellow-50', textColor: 'text-yellow-900'
-      }
+      inverno: { name: 'Inverno', subtitle: 'Cores Frias, Escuras e Brilhantes', description: 'A sua beleza é marcante e de alto contraste. Fica deslumbrante em cores puras, intensas e frias. O preto e o branco puro foram feitos para si.', characteristics: ['Frio', 'Intenso', 'Profundo'], colors: [{ hex: '#000000', name: 'Preto Puro' }, { hex: '#FFFFFF', name: 'Branco Puro' }, { hex: '#E32636', name: 'Vermelho Sangue' }, { hex: '#000080', name: 'Azul Marinho' }, { hex: '#50C878', name: 'Verde Esmeralda' }, { hex: '#FF00FF', name: 'Magenta' }, { hex: '#120A8F', name: 'Azul Royal' }, { hex: '#4B0082', name: 'Índigo' }], avoid: ['Laranja', 'Dourado', 'Tons terrosos apagados', 'Pastéis muito quentes'], bgColor: 'bg-slate-900', textColor: 'text-slate-100' },
+      verao: { name: 'Verão', subtitle: 'Cores Frias, Claras e Suaves', description: 'A sua beleza é delicada, elegante e harmoniosa. Tons suaves, acinzentados e pastéis frios realçam a sua beleza natural sem a ofuscar.', characteristics: ['Frio', 'Suave', 'Claro'], colors: [{ hex: '#AEC6CF', name: 'Azul Pastel' }, { hex: '#E6E6FA', name: 'Lavanda' }, { hex: '#D8BFD8', name: 'Rosa Velho' }, { hex: '#B0C4DE', name: 'Azul Aço Claro' }, { hex: '#98FF98', name: 'Verde Menta' }, { hex: '#EEDC82', name: 'Amarelo Pálido' }, { hex: '#FFB6C1', name: 'Rosa Claro' }, { hex: '#778899', name: 'Cinzento Ardósia' }], avoid: ['Preto puro', 'Laranja vibrante', 'Amarelo mostarda', 'Cores néon'], bgColor: 'bg-blue-50', textColor: 'text-blue-900' },
+      outono: { name: 'Outono', subtitle: 'Cores Quentes, Escuras e Suaves', description: 'A sua beleza é rica, terrosa e acolhedora. Tons profundos, quentes e misturados com amarelo ou castanho harmonizam perfeitamente com a sua pele.', characteristics: ['Quente', 'Suave', 'Profundo'], colors: [{ hex: '#FFDB58', name: 'Mostarda' }, { hex: '#8A9A5B', name: 'Verde Musgo' }, { hex: '#E2725B', name: 'Terracota' }, { hex: '#7B3F00', name: 'Castanho Chocolate' }, { hex: '#CC5500', name: 'Laranja Queimado' }, { hex: '#722F37', name: 'Vinho / Marsala' }, { hex: '#DAA520', name: 'Dourado' }, { hex: '#556B2F', name: 'Verde Oliva' }], avoid: ['Branco puro', 'Rosa choque', 'Azul gelo', 'Cores frias muito brilhantes'], bgColor: 'bg-orange-50', textColor: 'text-orange-950' },
+      primavera: { name: 'Primavera', subtitle: 'Cores Quentes, Claras e Brilhantes', description: 'A sua beleza é radiante, fresca e iluminada. Fica incrível com cores quentes, vibrantes e alegres, parecendo cheia de energia.', characteristics: ['Quente', 'Brilhante', 'Claro'], colors: [{ hex: '#FFE5B4', name: 'Pêssego' }, { hex: '#FF7F50', name: 'Coral' }, { hex: '#FFC000', name: 'Amarelo Girassol' }, { hex: '#8DB600', name: 'Verde Maçã' }, { hex: '#40E0D0', name: 'Turquesa' }, { hex: '#FFFDD0', name: 'Creme' }, { hex: '#FF69B4', name: 'Rosa Pastilha' }, { hex: '#87CEEB', name: 'Azul Céu' }], avoid: ['Preto', 'Cores muito escuras e pesadas', 'Cinzento chumbo', 'Tons frios e apagados'], bgColor: 'bg-yellow-50', textColor: 'text-yellow-900' }
     };
 
     function App() {
       // --- ESTADOS PRINCIPAIS ---
       const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, result, admin
       
-      // --- ESTADOS DO QUIZ ---
       const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
       const [answers, setAnswers] = useState([]);
       const [resultPalette, setResultPalette] = useState(null);
 
-      // --- ESTADOS DE AUTENTICAÇÃO E UTILIZADORES ---
-      const [users, setUsers] = useState(() => {
-        const savedUsers = localStorage.getItem('colormatch_users');
-        return savedUsers ? JSON.parse(savedUsers) : [{ username: 'admin', password: '123', role: 'master' }];
-      });
-      const [currentUser, setCurrentUser] = useState(null);
-      const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+      // --- ESTADOS DE BASE DE DADOS E USERS ---
+      const [isDbLoading, setIsDbLoading] = useState(true);
+      const dbRefs = useRef(null); // Guarda a referência do Firebase Firestore
 
-      // --- ESTADOS DO ADMIN ---
+      const [users, setUsers] = useState([]);
+      const [currentUser, setCurrentUser] = useState(null); // O utilizador que fez login
+      
+      const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+      const [loginUsername, setLoginUsername] = useState('');
+      const [loginPassword, setLoginPassword] = useState('');
+      const [loginError, setLoginError] = useState('');
+
       const [newUsername, setNewUsername] = useState('');
       const [newPassword, setNewPassword] = useState('');
+      const [isTestAccess, setIsTestAccess] = useState(false);
       const [adminError, setAdminError] = useState('');
       const [adminSuccess, setAdminSuccess] = useState('');
 
-      // Guardar utilizadores no localStorage sempre que forem alterados
+      // --- LIGAÇÃO À BASE DE DADOS FIREBASE (NUVEM) ---
       useEffect(() => {
-        localStorage.setItem('colormatch_users', JSON.stringify(users));
-      }, [users]);
+        let unsubscribeSnapshot;
+        let unsubscribeAuth;
 
-      // Controlar scroll do body quando o modal abre
+        const setupFirebase = async () => {
+          try {
+            // Importação Dinâmica dos Módulos Firebase via CDN
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+            const { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+            const { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+
+            // --- CONFIGURAÇÃO FIREBASE PARA O VERCEL ---
+            // IMPORTANTE: Se publicar no Vercel, substitua as credenciais abaixo pelas do seu projeto Firebase!
+            let firebaseConfig = {};
+            if (typeof __firebase_config !== 'undefined') {
+              firebaseConfig = JSON.parse(__firebase_config); // Funciona no Canvas gerador
+            } else {
+              // PREENCHA AQUI AS CREDENCIAIS DO SEU FIREBASE PARA FUNCIONAR NO VERCEL
+              firebaseConfig = {
+                apiKey: "COLE_AQUI_API_KEY",
+                authDomain: "COLE_AQUI_AUTH_DOMAIN",
+                projectId: "COLE_AQUI_PROJECT_ID",
+                storageBucket: "COLE_AQUI_STORAGE_BUCKET",
+                messagingSenderId: "COLE_AQUI_MESSAGING_SENDER_ID",
+                appId: "COLE_AQUI_APP_ID"
+              };
+            }
+
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'colormatch-app-id';
+
+            dbRefs.current = { db, collection, doc, setDoc, deleteDoc, appId };
+
+            // Iniciar Autenticação Anónima do Firebase (Necessário para a BD)
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(auth);
+            }
+
+            // Ouvir estado da autenticação e carregar utilizadores
+            unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+              if (authUser) {
+                const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'colormatch_users');
+                
+                unsubscribeSnapshot = onSnapshot(usersRef, (snapshot) => {
+                  const usersData = [];
+                  snapshot.forEach(d => usersData.push({ id: d.id, ...d.data() }));
+
+                  // Garantir que a conta Master principal existe sempre na lista (mesmo que a BD esteja vazia)
+                  if (!usersData.find(u => u.username === 'admin')) {
+                    usersData.unshift({ id: 'admin-master', username: 'admin', password: '123', role: 'master' });
+                  }
+
+                  // Garantir que a conta de teste existe sempre na lista
+                  if (!usersData.find(u => u.username === 'teste')) {
+                    usersData.push({ id: 'user-teste', username: 'teste', password: '12345', role: 'user', isTest: false });
+                  }
+
+                  setUsers(usersData);
+                  setIsDbLoading(false);
+                }, (error) => {
+                  console.error("Erro ao ler base de dados:", error);
+                  fallbackOffline();
+                });
+              }
+            });
+
+          } catch (error) {
+            console.error("Erro ao iniciar Firebase:", error);
+            fallbackOffline();
+          }
+        };
+
+        const fallbackOffline = () => {
+          // Se falhar a ligação à Cloud (ex: config Vercel errada), permite usar a app na mesma (apenas local)
+          setUsers([
+            { id: 'admin-master', username: 'admin', password: '123', role: 'master' },
+            { id: 'user-teste', username: 'teste', password: '12345', role: 'user', isTest: false }
+          ]);
+          setIsDbLoading(false);
+        };
+
+        setupFirebase();
+
+        return () => {
+          if (unsubscribeAuth) unsubscribeAuth();
+          if (unsubscribeSnapshot) unsubscribeSnapshot();
+        }
+      }, []);
+
+      // Auto-logout para acessos de teste
       useEffect(() => {
-        if (isLoginModalOpen) document.body.classList.add('modal-open');
-        else document.body.classList.remove('modal-open');
-        return () => document.body.classList.remove('modal-open');
-      }, [isLoginModalOpen]);
+        if (currentUser && currentUser.isTest && currentUser.expiresAt) {
+          const timeLeft = currentUser.expiresAt - Date.now();
+          if (timeLeft <= 0) {
+            handleTestExpiration();
+          } else {
+            const timer = setTimeout(() => { handleTestExpiration(); }, timeLeft);
+            return () => clearTimeout(timer);
+          }
+        }
+      }, [currentUser]);
 
+      const handleTestExpiration = () => {
+        setCurrentUser(null);
+        setCurrentScreen('home');
+        alert('O seu acesso de teste de 2 horas expirou. Obrigado por experimentar!');
+      };
+
+      // --- LÓGICA DE LOGIN ---
+      const handleLoginSubmit = (e) => {
+        e.preventDefault();
+        setLoginError('');
+        
+        const foundUser = users.find(u => u.username === loginUsername && u.password === loginPassword);
+        
+        if (foundUser) {
+          // Verifica se é acesso de teste e se já expirou
+          if (foundUser.isTest && Date.now() > foundUser.expiresAt) {
+            setLoginError('Este acesso de teste expirou.');
+            return;
+          }
+
+          setCurrentUser(foundUser);
+          setIsLoginModalOpen(false);
+          setLoginUsername('');
+          setLoginPassword('');
+          
+          // Redireciona corretamente
+          if (foundUser.role === 'master') {
+             setCurrentScreen('admin');
+          } else {
+             startQuiz();
+          }
+        } else {
+          setLoginError('Credenciais inválidas. Tente novamente.');
+        }
+      };
 
       // --- FUNÇÕES DE NAVEGAÇÃO E QUIZ ---
       const handleStartClick = () => {
-        if (!currentUser) {
-          setIsLoginModalOpen(true);
-        } else {
-          startQuiz();
-        }
+        if (!currentUser) setIsLoginModalOpen(true);
+        else startQuiz();
       };
 
       const startQuiz = () => {
@@ -254,8 +274,8 @@
         setCurrentScreen('result');
       };
 
-      // --- FUNÇÕES DE ADMINISTRAÇÃO ---
-      const handleCreateUser = (e) => {
+      // --- FUNÇÕES DE ADMINISTRAÇÃO NA BASE DE DADOS ---
+      const handleCreateUser = async (e) => {
         e.preventDefault();
         setAdminError('');
         setAdminSuccess('');
@@ -270,23 +290,52 @@
           return;
         }
 
-        setUsers([...users, { username: newUsername.trim(), password: newPassword, role: 'user' }]);
-        setNewUsername('');
-        setNewPassword('');
-        setAdminSuccess('Acesso criado com sucesso!');
-        setTimeout(() => setAdminSuccess(''), 3000);
-      };
+        const expirationTime = isTestAccess ? Date.now() + (2 * 60 * 60 * 1000) : null;
+        const newUserObj = { 
+          username: newUsername.trim(), 
+          password: newPassword, 
+          role: 'user',
+          isTest: isTestAccess,
+          expiresAt: expirationTime
+        };
 
-      const handleDeleteUser = (usernameToDelete) => {
-        if (usernameToDelete === 'admin') return; // Segurança extra
-        if (window.confirm(`Tem a certeza que deseja excluir o acesso de "${usernameToDelete}"?`)) {
-          setUsers(users.filter(u => u.username !== usernameToDelete));
+        // Gravar na Cloud Database (Firebase)
+        if (dbRefs.current) {
+          try {
+            const { db, collection, doc, setDoc, appId } = dbRefs.current;
+            const newDocRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'colormatch_users'));
+            await setDoc(newDocRef, newUserObj);
+            
+            setAdminSuccess(isTestAccess ? 'Acesso de Teste (2h) criado com sucesso!' : 'Acesso Permanente criado com sucesso!');
+            setNewUsername('');
+            setNewPassword('');
+            setIsTestAccess(false);
+            setTimeout(() => setAdminSuccess(''), 4000);
+          } catch (err) {
+            setAdminError('Erro ao gravar na nuvem. Verifique a consola.');
+            console.error(err);
+          }
+        } else {
+           setAdminError('A Base de Dados não está conectada. Utilize as suas credenciais no código-fonte.');
         }
       };
 
+      const handleDeleteUser = async (userToDelete) => {
+        if (userToDelete.username === 'admin' || userToDelete.role === 'master') return; 
+        
+        if (window.confirm(`Tem a certeza que deseja excluir o acesso de "${userToDelete.username}"?`)) {
+           if (dbRefs.current && userToDelete.id) {
+             try {
+                const { db, doc, deleteDoc, appId } = dbRefs.current;
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'colormatch_users', userToDelete.id));
+             } catch (err) {
+                console.error("Erro ao apagar na BD:", err);
+             }
+           }
+        }
+      };
 
-      // --- COMPONENTES DAS TELAS ---
-
+      // --- ECRÃS DE RENDERIZAÇÃO ---
       const renderHome = () => (
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4 animate-in fade-in zoom-in">
           <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-8 shadow-sm">
@@ -300,10 +349,11 @@
           </p>
           <button 
             onClick={handleStartClick}
-            className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg"
+            disabled={isDbLoading}
+            className={`flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-full font-medium transition-all shadow-lg ${isDbLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-800 transform hover:scale-105'}`}
           >
-            {currentUser ? 'Iniciar Teste' : 'Aceder ao Teste'}
-            {currentUser ? <ArrowRight size={20} /> : <Lock size={20} />}
+            {isDbLoading ? <><Loader size={20} /> A conectar...</> : currentUser ? 'Iniciar Teste' : 'Aceder ao Teste'}
+            {!isDbLoading && (currentUser ? <ArrowRight size={20} /> : <Lock size={20} />)}
           </button>
           <p className="mt-8 text-sm text-gray-400 flex items-center gap-1">
             <Info size={14} /> Demora apenas 2 minutos
@@ -314,7 +364,6 @@
       const renderQuiz = () => {
         const question = questions[currentQuestionIndex];
         const progress = ((currentQuestionIndex) / questions.length) * 100;
-
         return (
           <div className="max-w-2xl mx-auto px-4 py-12 animate-in fade-in">
             <div className="mb-12">
@@ -326,15 +375,11 @@
                 <div className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
               </div>
             </div>
-
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10">
               <h2 className="text-2xl font-bold text-gray-800 mb-8 leading-tight">{question.question}</h2>
               <div className="space-y-4">
                 {question.options.map((option, idx) => (
-                  <button
-                    key={idx} onClick={() => handleAnswer(option.value)}
-                    className="w-full text-left p-5 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all group flex items-start gap-4"
-                  >
+                  <button key={idx} onClick={() => handleAnswer(option.value)} className="w-full text-left p-5 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all group flex items-start gap-4">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-300 group-hover:border-indigo-500 flex items-center justify-center mt-0.5">
                       <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
@@ -349,7 +394,6 @@
 
       const renderResult = () => {
         if (!resultPalette) return null;
-
         return (
           <div className="max-w-4xl mx-auto px-4 py-8 animate-in slide-in-from-bottom-8">
             <div className={`${resultPalette.bgColor} rounded-3xl p-8 md:p-12 text-center mb-8 shadow-sm border border-gray-100/50`}>
@@ -409,7 +453,7 @@
               <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600"><Shield size={28} /></div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Painel Master</h2>
-                <p className="text-sm text-gray-500">Gira os acessos da aplicação.</p>
+                <p className="text-sm text-gray-500">Gira os acessos da aplicação na Nuvem.</p>
               </div>
             </div>
 
@@ -424,22 +468,20 @@
                   <form onSubmit={handleCreateUser} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nome de Utilizador</label>
-                      <input 
-                        type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                        placeholder="Ex: joao.silva"
-                      />
+                      <input type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Ex: joao.silva" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Palavra-passe</label>
-                      <input 
-                        type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                        placeholder="••••••"
-                      />
+                      <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="••••••" />
                     </div>
-                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg transition-colors">
-                      Criar Acesso
+                    
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                      <input type="checkbox" id="testAccess" checked={isTestAccess} onChange={e => setIsTestAccess(e.target.checked)} className="w-4 h-4 text-indigo-600 bg-white border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" />
+                      <label htmlFor="testAccess" className="text-sm text-gray-700 cursor-pointer select-none flex items-center gap-1.5"><Clock size={16} className="text-gray-500"/>Acesso de Teste (2 Horas)</label>
+                    </div>
+
+                    <button type="submit" disabled={!dbRefs.current} className={`w-full text-white font-medium py-2 rounded-lg transition-colors ${!dbRefs.current ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                      Criar Acesso Seguro
                     </button>
                   </form>
                 </div>
@@ -448,103 +490,43 @@
               {/* Lista de Utilizadores */}
               <div className="md:col-span-2">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                  <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-gray-800">Acessos Ativos ({users.length})</h3>
+                    {!dbRefs.current && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-md font-bold">Modo Offline (Vercel)</span>}
                   </div>
                   <ul className="divide-y divide-gray-100">
-                    {users.map((user, idx) => (
-                      <li key={idx} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${user.role === 'master' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-600'}`}>
-                            {user.role === 'master' ? <Shield size={18} /> : <UserIcon size={18} />}
+                    {users.map((user, idx) => {
+                      const isExpired = user.isTest && Date.now() > user.expiresAt;
+                      return (
+                        <li key={idx} className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors ${isExpired ? 'opacity-60' : ''}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${user.role === 'master' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-600'}`}>
+                              {user.role === 'master' ? <Shield size={18} /> : <UserIcon size={18} />}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className={`font-semibold ${isExpired ? 'text-gray-500 line-through' : 'text-gray-900'}`}>{user.username}</p>
+                                {user.isTest && (
+                                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${isExpired ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                                    {isExpired ? 'Expirado' : 'Teste 2H'}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wider">{user.role}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{user.username}</p>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider">{user.role}</p>
-                          </div>
-                        </div>
-                        
-                        {user.role !== 'master' && (
-                          <button 
-                            onClick={() => handleDeleteUser(user.username)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir Acesso"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
-                        {user.role === 'master' && (
-                          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-md">Protegido</span>
-                        )}
-                      </li>
-                    ))}
+                          
+                          {user.role !== 'master' && (
+                            <button onClick={() => handleDeleteUser(user)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir Acesso">
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                          {user.role === 'master' && (<span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-md">Protegido</span>)}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
-              </div>
-            </div>
-          </div>
-        );
-      };
-
-      // --- MODAL DE LOGIN ---
-      const LoginModal = () => {
-        const [username, setUsername] = useState('');
-        const [password, setPassword] = useState('');
-        const [error, setError] = useState('');
-
-        if (!isLoginModalOpen) return null;
-
-        const handleLoginSubmit = (e) => {
-          e.preventDefault();
-          setError('');
-          
-          const foundUser = users.find(u => u.username === username && u.password === password);
-          
-          if (foundUser) {
-            setCurrentUser(foundUser);
-            setIsLoginModalOpen(false);
-            if(foundUser.role === 'master' && currentScreen === 'home') {
-               // Pode ir para home ou admin, deixamos na home para decidir
-            } else if (currentScreen === 'home') {
-               startQuiz();
-            }
-          } else {
-            setError('Credenciais inválidas. Tente novamente.');
-          }
-        };
-
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2"><Lock size={20} className="text-indigo-600"/> Acesso Restrito</h3>
-                <button onClick={() => setIsLoginModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition"><X size={20}/></button>
-              </div>
-              
-              <div className="p-8">
-                {error && <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{error}</div>}
-                
-                <form onSubmit={handleLoginSubmit} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Utilizador</label>
-                    <input 
-                      type="text" autoFocus required value={username} onChange={e => setUsername(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                      placeholder="Introduza o seu utilizador"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Palavra-passe</label>
-                    <input 
-                      type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3.5 rounded-xl transition-colors mt-2">
-                    Entrar
-                  </button>
-                </form>
               </div>
             </div>
           </div>
@@ -572,27 +554,16 @@
                   </button>
                 ) : (
                   <div className="flex items-center gap-2 sm:gap-4">
-                    <span className="text-sm text-gray-500 hidden sm:inline-block">
-                      Olá, <strong className="text-gray-900">{currentUser.username}</strong>
-                    </span>
-                    
+                    <span className="text-sm text-gray-500 hidden sm:inline-block">Olá, <strong className="text-gray-900">{currentUser.username}</strong></span>
                     {currentUser.role === 'master' && currentScreen !== 'admin' && (
-                      <button onClick={() => setCurrentScreen('admin')} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition">
-                        <Shield size={16} /> Admin
-                      </button>
+                      <button onClick={() => setCurrentScreen('admin')} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition"><Shield size={16} /> Admin</button>
                     )}
-                    
-                    <button 
-                      onClick={() => { setCurrentUser(null); setCurrentScreen('home'); }} 
-                      className="text-sm font-medium text-red-500 hover:text-red-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
-                      title="Terminar Sessão"
-                    >
+                    <button onClick={() => { setCurrentUser(null); setCurrentScreen('home'); }} className="text-sm font-medium text-red-500 hover:text-red-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50 transition" title="Terminar Sessão">
                       <LogOut size={16} /> <span className="hidden sm:inline">Sair</span>
                     </button>
                   </div>
                 )}
               </div>
-
             </div>
           </header>
 
@@ -603,8 +574,35 @@
             {currentScreen === 'admin' && renderAdminPanel()}
           </main>
 
-          {/* Modal Overlay */}
-          <LoginModal />
+          {/* Modal Overlay Direto */}
+          {isLoginModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in">
+              <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in">
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                  <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2"><Lock size={20} className="text-indigo-600"/> Acesso Restrito</h3>
+                  <button onClick={() => setIsLoginModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition"><X size={20}/></button>
+                </div>
+                
+                <div className="p-8">
+                  {loginError && <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{loginError}</div>}
+                  
+                  <form onSubmit={handleLoginSubmit} className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Utilizador</label>
+                      <input type="text" autoFocus required value={loginUsername} onChange={e => setLoginUsername(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Introduza o seu utilizador" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Palavra-passe</label>
+                      <input type="password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="••••••••" />
+                    </div>
+                    <button type="submit" disabled={isDbLoading} className={`w-full text-white font-medium py-3.5 rounded-xl transition-colors mt-2 ${isDbLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800'}`}>
+                      {isDbLoading ? 'A conectar...' : 'Entrar'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Rodapé */}
           <footer className="bg-white border-t border-gray-200 py-8 mt-auto">
